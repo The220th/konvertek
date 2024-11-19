@@ -52,8 +52,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--maxbitrate", default=False, action='store_true',
                         help="If set, the bitrate cannot exceed the value specified in flag \"--bitrate\". ")
 
-    parser.add_argument("--not_replace", default=True, action='store_false',
-                        help="If set, No need to replace the video if it already exists in the destination folder. ")
+    parser.add_argument("--not_replace", default=False, action='store_true',
+                        help="If set, no need to replace the video if it already exists in the destination folder. ")
     parser.add_argument("--stop_if_error", default=False, action='store_true',
                         help="If set and error occurred while ffmpeg is running, konvertek will exit. ")
 
@@ -74,8 +74,9 @@ def get_args() -> argparse.Namespace:
     return args
 
 
-def is_dir_path(string):
-    if os.path.isdir(string):
-        return string
+def is_dir_path(_string):
+    if os.path.isdir(_string):
+        return _string
     else:
-        raise NotADirectoryError(string)
+        print(f"\"{_string}\" is not directory. ")
+        raise NotADirectoryError(_string)

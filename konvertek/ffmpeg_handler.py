@@ -1,13 +1,12 @@
 # coding: utf-8
 
 import ffmpeg
-import subprocess
 
 
 def transcode_video(input_file, output_file,
                     v_codec: str = None, vf: str = None,
                     bitrate: str = None, maxbitrate: str = None,
-                    overwrite: bool = True) -> str | None:
+                    overwrite: bool = True, quiet: bool = True) -> str | None:
     out_params = {
         "map": 0,
         "c:a": "copy",
@@ -22,15 +21,13 @@ def transcode_video(input_file, output_file,
     if maxbitrate is not None:
         out_params["maxrate"] = maxbitrate
 
-    stdoe = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
-
     try:
         ffmpeg.input(input_file).output(
-            output_file,
-            **out_params
-        ).run(overwrite_output=overwrite, **stdoe)
+            output_file, **out_params
+        ).global_args(*[]).run(overwrite_output=overwrite, capture_stderr=True, capture_stdout=True)
     except ffmpeg.Error as e:
-        return e.stderr.decode()
+        return e.stderr.decode("utf8")
+        # return e.stdout.decode("utf8")
 
     return None
 
@@ -45,8 +42,8 @@ def do_ffmpeg_vf_flag(resolution: str | None, fps: int | None, interpolation: st
     # "vf": "scale=-2:'if(gt(ih,720),720,ih)'"
     # "scale=-2:'if(gt(ih,720),720,ih)',fps=60:flags=blend"
     # -vf "minterpolate='fps=60:mi_mode=mci:me=bilat'"
-    res_int = remove_p_from_resolution(resolution)
     if resolution is not None:
+        res_int = remove_p_from_resolution(resolution)
         s += f"scale=-2:'if(gt(ih,{res_int}),{res_int},ih)'"
     if fps is not None:
         if s != "":

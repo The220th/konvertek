@@ -20,6 +20,7 @@ dependencies = [
     "ksupk",
     "argparse",
     "ffmpeg-python",
+    "tqdm",
 ]
 
 [project.scripts]

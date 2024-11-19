@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from ksupk import singleton_decorator, restore_json, save_json
-from ksupk import get_files_list, get_dirs_needed_for_files, mkdir_with_p
+from ksupk import get_files_list
 from threading import Lock
 import os
 
@@ -64,7 +64,8 @@ class ProgressHandler:
         for file_i in files:
             status = False
             if file_i in self.db["files"]:
-                status = self.db["files"]["status"]
+                if "status" in self.db["files"][file_i]:
+                    status = self.db["files"][file_i]["status"]
             d[file_i] = {"in": os.path.join(dir_in, file_i),
                          "out": os.path.join(dir_out, file_i),
                          "status": status
