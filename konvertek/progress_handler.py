@@ -1,0 +1,72 @@
+# coding: utf-8
+
+from ksupk import singleton_decorator, restore_json, save_json
+from ksupk import get_files_list, get_dirs_needed_for_files, mkdir_with_p
+from threading import Lock
+import os
+
+
+@singleton_decorator
+class ProgressHandler:
+    def __init__(self, json_path: str):
+        self.__lock = Lock()
+        self.__path = json_path
+
+        if not os.path.isfile(json_path):
+            self.create_new()
+        self.db = restore_json(json_path)
+
+    def flush(self):
+        with self.__lock:
+            save_json(self.__path, self.db)
+
+    def add_files(self, files: dict):
+        for k_i in files:
+            self.db["files"][k_i] = files[k_i]
+        self.flush()
+
+    def update(self, file: str, doned: bool, error_text: str | None):
+        self.db["files"][file]["status"] = doned
+        if error_text is not None:
+            self.db["errors"][file] = error_text
+        else:
+            self.db["errors"].pop(file, None)
+        self.flush()
+
+    def file_status(self, file: str) -> bool:
+        return self.db["files"][file]["status"]
+
+    def get_file_in_out(self, file: str) -> tuple:
+        return self.db["files"][file]["in"], self.db["files"][file]["out"]
+
+    def get_db(self) -> dict:
+        return self.db.copy()
+
+    def set_error(self, file: str, error_text: str):
+        self.db["errors"][file] = error_text
+        self.flush()
+
+    def get_error(self, file: str, error_text: str) -> str:
+        return self.db["errors"][file]
+
+    def create_new(self):
+        d = {
+            "files": {},
+            "errors": {}
+        }
+        self.db = d
+        self.flush()
+
+    def create_files_4_progress(self, dir_in: str, dir_out: str) -> dict:
+        d = {}
+        files = get_files_list(os.path.abspath(dir_in))
+        files = [os.path.relpath(file_i, dir_in) for file_i in files]
+        for file_i in files:
+            status = False
+            if file_i in self.db["files"]:
+                status = self.db["files"]["status"]
+            d[file_i] = {"in": os.path.join(dir_in, file_i),
+                         "out": os.path.join(dir_out, file_i),
+                         "status": status
+                         }
+        return d

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "konvertek"
+dynamic = ["version"]
+authors = [
+  { name="The220th", email="The220th@gmail.com" },
+]
+description = "Convert media. "
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "ksupk",
+    "argparse",
+    "ffmpeg-python",
+]
+
+[project.scripts]
+konvertek = "konvertek.main:main"
+
+[project.urls]
+Homepage = "https://github.com/The220th/konvertek"
+Issues = "https://github.com/The220th/konvertek/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.dynamic]
+version = {attr = "konvertek.__version__"}
