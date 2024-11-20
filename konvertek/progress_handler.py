@@ -46,8 +46,11 @@ class ProgressHandler:
         self.db["errors"][file] = error_text
         self.flush()
 
-    def get_error(self, file: str, error_text: str) -> str:
-        return self.db["errors"][file]
+    def get_errors(self) -> dict:
+        return self.db["errors"]
+
+    def get_files(self) -> dict:
+        return self.db["files"]
 
     def create_new(self):
         d = {
