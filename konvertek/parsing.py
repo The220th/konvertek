@@ -8,7 +8,7 @@ from konvertek.__init__ import __version__
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="konvertek. Convert media from folder.")
 
-    parser.add_argument("--version", action="version", version=f"{__version__}", help="Check version. ")
+    parser.add_argument("--version", action="version", version=f"V{__version__}", help="Check version. ")
 
     subparsers = parser.add_subparsers(dest='command', required=True)
 
@@ -27,7 +27,7 @@ def get_args() -> argparse.Namespace:
                              help='Path to file with progress. It is json. ')
     main_parser.add_argument("--v_codec", type=str,  # avc=H.264, hevc=H.265
                              choices=["libx264", "h264_nvenc", "h264_amf", "h264_vaapi",
-                                      "libx265", "hevc_amf", "hevc_nvenc", "h265_vaapi",
+                                      "libx265", "hevc_nvenc", "hevc_amf", "h265_vaapi",
                                       "libvpx-vp9", "vp9_qsv",
                                       "libaom-av1", "av1_vaapi",
                                       "libxvid", "rawvideo"],
