@@ -12,6 +12,8 @@ class ProgressHandler:
         self.__lock = Lock()
         self.__path = json_path
 
+        self.__old_containers = [".avi"]
+
         if not os.path.isfile(json_path):
             self.create_new()
         self.db = restore_json(json_path)
@@ -69,8 +71,16 @@ class ProgressHandler:
             if file_i in self.db["files"]:
                 if "status" in self.db["files"][file_i]:
                     status = self.db["files"][file_i]["status"]
+            out_file_path = self.define_save_path(dir_out, file_i)
             d[file_i] = {"in": os.path.join(dir_in, file_i),
-                         "out": os.path.join(dir_out, file_i),
+                         "out": out_file_path,
                          "status": status
                          }
         return d
+
+    def define_save_path(self, out_folder: str, file: str) -> str:
+        if str(os.path.splitext(file)[1]).lower() in self.__old_containers:
+            p, e = os.path.splitext(file)
+            return os.path.join(out_folder, f"{p}.mp4")
+        else:
+            return os.path.join(out_folder, file)

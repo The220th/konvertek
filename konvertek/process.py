@@ -49,7 +49,8 @@ def video_processing(args: argparse.Namespace):
                                       v_codec=args.v_codec, vf=vf,
                                       bitrate=bitrate_i,
                                       maxbitrate=args.bitrate if args.maxbitrate else None,
-                                      overwrite=args.replace)
+                                      overwrite=args.replace,
+                                      print_command=args.print_command,)
                 if tvr is None:
                     ph.update(file_i, True, None)
                     ok_files.append(file_i)

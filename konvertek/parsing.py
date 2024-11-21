@@ -66,6 +66,8 @@ def get_args() -> argparse.Namespace:
 
     main_parser.add_argument("--stop_if_error", default=False, action='store_true',
                              help="If set and error occurred while ffmpeg is running, konvertek will exit. ")
+    main_parser.add_argument("--print_command", default=False, action='store_true',
+                             help="Output ffmpeg command. ")
 
     # problem_info
     problem_info_parser = subparsers.add_parser('problem_info', help='Print problems')

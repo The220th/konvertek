@@ -7,14 +7,14 @@ import os
 def transcode_video(input_file, output_file,
                     v_codec: str = None, vf: str = None,
                     bitrate: str = None, maxbitrate: str = None,
-                    overwrite: bool = True) -> str | None:
+                    overwrite: bool = True, print_command: bool = False) -> str | None:
     if not overwrite and os.path.isfile(output_file):
         return None
     out_params = {
         "map": 0,
         "c:a": "copy",
         "c:s": "copy",
-        }
+    }
     if v_codec is not None:
         out_params["c:v"] = v_codec
     if vf is not None:
@@ -24,10 +24,23 @@ def transcode_video(input_file, output_file,
     if maxbitrate is not None:
         out_params["maxrate"] = maxbitrate
 
+    if print_command:
+        try:
+            process = (
+                ffmpeg.input(input_file).output(
+                    output_file, **out_params
+                ).global_args(*[])
+            )
+            command = process.compile()
+            print(' '.join(command))
+        except ffmpeg.Error as e:
+            print("Cannot print ffmpeg-command. ")
+
     try:
         ffmpeg.input(input_file).output(
             output_file, **out_params
         ).global_args(*[]).run(overwrite_output=overwrite, capture_stderr=True, capture_stdout=True)
+
     except ffmpeg.Error as e:
         return e.stderr.decode("utf8")
         # return e.stdout.decode("utf8")
@@ -36,11 +49,12 @@ def transcode_video(input_file, output_file,
 
 
 def remove_p_from_resolution(s: str) -> int:
-    return int(s[:len(s)-1])
+    return int(s[:len(s) - 1])
 
 
 def do_ffmpeg_vf_flag(resolution: str | None, fps: int | None, interpolation: str | None) -> str | None:
     s = ""
+    res_to_width = {720: 1280, 1080: 1920, 1440: 2560, 2160: 3840, 4320: 7680, 8640: 15360}
     # "vf": "scale='if(gt(iw,ih),1280,-2):if(gt(iw,ih),-2,720)'",
     # "vf": "scale=-2:'if(gt(ih,720),720,ih)'"
     # "scale=-2:'if(gt(ih,720),720,ih)',fps=60:flags=blend"
@@ -48,7 +62,11 @@ def do_ffmpeg_vf_flag(resolution: str | None, fps: int | None, interpolation: st
     # scale=-2:'if(gt(ih,720),720,ih)',minterpolate=fps=300:mi_mode=accurate
     if resolution is not None:
         res_int = remove_p_from_resolution(resolution)
-        s += f"scale=-2:'if(gt(ih,{res_int}),{res_int},ih)'"
+        if res_int in res_to_width:
+            needed_w = res_to_width[res_int]
+            s += f"scale='if(gt(iw,{needed_w}),{needed_w},iw)':-2"
+        else:
+            s += f"scale=-2:'if(gt(ih,{res_int}),{res_int},ih)'"
     if fps is not None:
         if s != "":
             s += ","
@@ -60,8 +78,9 @@ def do_ffmpeg_vf_flag(resolution: str | None, fps: int | None, interpolation: st
 
 
 def get_video_ext() -> set:
-    res = {".mp4", ".m4v", ".mkv", ".mk3d", ".mka", ".webm", ".avi", ".mov", ".wmv", ".wma", ".asf", ".ts", ".m2ts", ".flv",
-     ".3gp", ".3g2", ".rm", ".rmvb", ".divx", ".mxf", ".gxf", ".nut", ".psp"}
+    res = {".mp4", ".m4v", ".mkv", ".mk3d", ".mka", ".webm", ".avi", ".mov", ".wmv", ".wma", ".asf", ".ts", ".m2ts",
+           ".flv",
+           ".3gp", ".3g2", ".rm", ".rmvb", ".divx", ".mxf", ".gxf", ".nut", ".psp"}
 
     return res
 
@@ -106,9 +125,9 @@ def parse_bitrate(bitrate_str: str) -> int:
     """
 
     suffix_multipliers = {
-        'K': 10**3,
-        'M': 10**6,
-        'G': 10**9
+        'K': 10 ** 3,
+        'M': 10 ** 6,
+        'G': 10 ** 9
     }
 
     if bitrate_str[-1] in suffix_multipliers:
